@@ -149,14 +149,13 @@ class Bone:
         """Parse matrix data from the file to create a bone matrix"""
         from mathutils import Matrix
 
-        # Create a 4x4 matrix from the raw data
+        # Create a 4x4 matrix from the raw data - ensure correct ordering
         mtx = []
         for i in range(0, 64, 4):
             value = struct.unpack(endian + 'f', matrix_data[i:i+4])[0]
             mtx.append(value)
 
-        # Convert to Blender format
-        # This would need to be tested and adjusted for proper orientation
+        # Create matrix with correct column/row order for Blender
         self.matrix = Matrix((
             (mtx[0], mtx[4], mtx[8], mtx[12]),
             (mtx[1], mtx[5], mtx[9], mtx[13]),
@@ -164,8 +163,11 @@ class Bone:
             (mtx[3], mtx[7], mtx[11], mtx[15])
         ))
 
-        # Inverse the matrix as needed
+        # Matrix is stored inverted in the file, invert it
         self.matrix.invert()
+
+        # Extract position from matrix
+        self.position = self.matrix.to_translation()
 
     def getPosition(self):
         """Get the bone position, either from translation or matrix"""

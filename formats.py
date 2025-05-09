@@ -703,6 +703,7 @@ class PS3MeshObject:
         skinningFlags = self.spuConfigInfo.indexesFlavorAndSkinningFlavor & 0xF
         if skinningFlags == constants.EDGE_GEOM_SKIN_NONE:
             return None
+
         useOneBone = skinningFlags in [constants.EDGE_GEOM_SKIN_SINGLE_BONE_NO_SCALING,
                                        constants.EDGE_GEOM_SKIN_SINGLE_BONE_UNIFORM_SCALING,
                                        constants.EDGE_GEOM_SKIN_SINGLE_BONE_NON_UNIFORM_SCALING]
@@ -715,6 +716,7 @@ class PS3MeshObject:
         # build the buffers
         skinBuffer = self.vertexBuffers[3]
         highestIndex = 0
+
         if useOneBone:
             bwBuffer = [0xFF, 0x00, 0x00, 0x00] * vertexCount
             biBuffer = []
@@ -738,6 +740,7 @@ class PS3MeshObject:
 
                     if skinBuffer[i*8+j*2+1] > highestIndex:
                         highestIndex = skinBuffer[i*8+j*2+1]
+
         return (bwBuffer, biBuffer)
 
 
@@ -957,10 +960,19 @@ class MeshObject:
 
                 # Extract weights and indices
                 for i in range(len(weight_data) // 4):
-                    weights = [weight_data[i*4]/255.0, weight_data[i*4+1]/255.0,
-                               weight_data[i*4+2]/255.0, weight_data[i*4+3]/255.0]
-                    indices = [index_data[i*4], index_data[i*4+1],
-                               index_data[i*4+2], index_data[i*4+3]]
+                    weights = []
+                    indices = []
+
+                    for j in range(4):
+                        w = weight_data[i*4+j] / 255.0
+                        weights.append(w)
+                        idx = index_data[i*4+j]
+                        indices.append(idx)
+
+                    # Normalize weights if they don't sum to 1
+                    weight_sum = sum(weights)
+                    if weight_sum > 0 and abs(weight_sum - 1.0) > 0.001:
+                        weights = [w / weight_sum for w in weights]
 
                     self.weights.append(weights)
                     self.boneIndices.append(indices)
@@ -1014,24 +1026,32 @@ class MeshObject:
     def buildBatchedPs3BoneBuffers(self):
         bwBuffer = []
         biBuffer = []
+
         for segment in self.ps3Segments:
             buffers = segment.getPs3BoneStuff()
             if buffers:
-                bwBuffer.extend(buffers[0])
-                biBuffer.extend(buffers[1])
-        return (bytes(bwBuffer), bytes(biBuffer))
+                bw, bi = buffers
+                # Check if we have valid data
+                if len(bw) > 0 and len(bi) > 0:
+                    bwBuffer.extend(bw)
+                    biBuffer.extend(bi)
+
+        # If we have data, return it as bytes
+        if len(bwBuffer) > 0 and len(biBuffer) > 0:
+            return (bytes(bwBuffer), bytes(biBuffer))
+
+        return None
 
     def superchargersFunkiness(self, endarg):
         fVBuf = []
-
         for i in range(self.vertexCount):
             coord = struct.unpack(
                 endarg + 'hhh', self.vertexBuffers[0][i * self.vertexStrides[0]+0:i * self.vertexStrides[0]+6])
             scale = struct.unpack(
-                endarg + 'h',   self.vertexBuffers[0][i * self.vertexStrides[0]+6:i * self.vertexStrides[0]+8])
-            fVBuf.extend(bytes(struct.pack(endarg + "f", coord[0] / scale[0])))
-            fVBuf.extend(bytes(struct.pack(endarg + "f", coord[1] / scale[0])))
-            fVBuf.extend(bytes(struct.pack(endarg + "f", coord[2] / scale[0])))
+                endarg + 'h', self.vertexBuffers[0][i * self.vertexStrides[0]+6:i * self.vertexStrides[0]+8])[0]
+            fVBuf.extend(bytes(struct.pack(endarg + "f", coord[0] / scale)))
+            fVBuf.extend(bytes(struct.pack(endarg + "f", coord[1] / scale)))
+            fVBuf.extend(bytes(struct.pack(endarg + "f", coord[2] / scale)))
         return bytes(fVBuf)
 
     def handlePackData(self, vertexBuff, stride):
@@ -1178,24 +1198,38 @@ class ModelObject:
                         bone_map = self.boneMapList[mesh_obj.boneMapIndex] if len(
                             self.boneMapList) > mesh_obj.boneMapIndex else []
 
+                        # Pre-create all needed vertex groups
                         for bone_idx in range(len(bone_map)):
-                            bone_name = self.boneList[bone_map[bone_idx]].name if bone_map[bone_idx] < len(
-                                self.boneList) else f"Bone_{bone_map[bone_idx]}"
+                            mapped_bone = bone_map[bone_idx]
+                            if mapped_bone < len(self.boneList):
+                                bone_name = self.boneList[mapped_bone].name
+                            else:
+                                bone_name = f"Bone_{mapped_bone}"
+
                             if bone_name not in blender_obj.vertex_groups:
                                 blender_obj.vertex_groups.new(name=bone_name)
 
                         # Assign weights to vertex groups
                         for vertex_idx in range(len(mesh_obj.weights)):
+                            # Normalize weights if needed
+                            weights = mesh_obj.weights[vertex_idx]
+                            weight_sum = sum(weights)
+                            if weight_sum > 0.001 and abs(weight_sum - 1.0) > 0.01:
+                                weights = [w / weight_sum for w in weights]
+
+                            # Assign weights that are significant
                             for i in range(4):
-                                weight = mesh_obj.weights[vertex_idx][i]
-                                if weight > 0:
+                                weight = weights[i]
+                                if weight > 0.001:  # Skip near-zero weights
                                     bone_idx = mesh_obj.boneIndices[vertex_idx][i]
                                     if bone_idx < len(bone_map):
                                         mapped_bone = bone_map[bone_idx]
                                         bone_name = self.boneList[mapped_bone].name if mapped_bone < len(
                                             self.boneList) else f"Bone_{mapped_bone}"
-                                        blender_obj.vertex_groups[bone_name].add(
-                                            [vertex_idx], weight, 'ADD')
+
+                                        if bone_name in blender_obj.vertex_groups:
+                                            blender_obj.vertex_groups[bone_name].add(
+                                                [vertex_idx], weight, 'ADD')
 
             index += 1
 
