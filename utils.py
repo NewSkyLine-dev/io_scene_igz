@@ -62,9 +62,31 @@ class NoeBitStream:
 
     def readString(self):
         start = self.offset
-        while self.data[self.offset] != 0:
+        while self.offset < len(self.data) and self.data[self.offset] != 0:
             self.offset += 1
-        return self.data[start:self.offset].decode('utf-8')
+        result = self.data[start:self.offset].decode('utf-8')
+        # Move past the null terminator
+        if self.offset < len(self.data):
+            self.offset += 1
+        return result
+
+    def readFloat(self):
+        val = struct.unpack(self.endian + 'f',
+                            self.data[self.offset:self.offset + 4])[0]
+        self.offset += 4
+        return val
+
+    def readDouble(self):
+        val = struct.unpack(self.endian + 'd',
+                            self.data[self.offset:self.offset + 8])[0]
+        self.offset += 8
+        return val
+
+    def readShort(self):
+        val = struct.unpack(self.endian + 'h',
+                            self.data[self.offset:self.offset + 2])[0]
+        self.offset += 2
+        return val
 
     def readHalfFloat(self):
         """Convert half precision (16-bit) float to regular float"""

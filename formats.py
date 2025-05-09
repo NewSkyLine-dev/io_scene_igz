@@ -1159,16 +1159,16 @@ class ModelObject:
             if len(mesh_obj.vertices) > 0:
                 # Create the Blender mesh
                 mesh = mesh_obj.createBlenderMesh(mesh_name)
-                mesh_obj = bpy.data.objects.new(mesh_name, mesh)
-                bpy.context.scene.collection.objects.link(mesh_obj)
+                blender_obj = bpy.data.objects.new(mesh_name, mesh)
+                bpy.context.scene.collection.objects.link(blender_obj)
 
                 # If we have an armature, parent and add vertex groups
                 if armature and constants.dBuildBones:
                     # Parent mesh to armature
-                    mesh_obj.parent = armature_obj
+                    blender_obj.parent = armature_obj
 
                     # Add armature modifier
-                    modifier = mesh_obj.modifiers.new(
+                    modifier = blender_obj.modifiers.new(
                         name="Armature", type='ARMATURE')
                     modifier.object = armature_obj
 
@@ -1181,8 +1181,8 @@ class ModelObject:
                         for bone_idx in range(len(bone_map)):
                             bone_name = self.boneList[bone_map[bone_idx]].name if bone_map[bone_idx] < len(
                                 self.boneList) else f"Bone_{bone_map[bone_idx]}"
-                            if bone_name not in mesh_obj.vertex_groups:
-                                mesh_obj.vertex_groups.new(name=bone_name)
+                            if bone_name not in blender_obj.vertex_groups:
+                                blender_obj.vertex_groups.new(name=bone_name)
 
                         # Assign weights to vertex groups
                         for vertex_idx in range(len(mesh_obj.weights)):
@@ -1194,7 +1194,7 @@ class ModelObject:
                                         mapped_bone = bone_map[bone_idx]
                                         bone_name = self.boneList[mapped_bone].name if mapped_bone < len(
                                             self.boneList) else f"Bone_{mapped_bone}"
-                                        mesh_obj.vertex_groups[bone_name].add(
+                                        blender_obj.vertex_groups[bone_name].add(
                                             [vertex_idx], weight, 'ADD')
 
             index += 1
@@ -1202,6 +1202,15 @@ class ModelObject:
         return True
 
     def __init__(self):
+        self.name = ""
+        self.boneList = []
+        self.boneMatrices = []
+        self.boneIdList = []
+        self.boneMapList = []
+        self.anims = []
+        self.id = 0
+        self.meshes = []
+        self.meshCount = 0
         self.name = ""
         self.vertexBuffers = []
         self.vertexStrides = []
