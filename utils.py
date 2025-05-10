@@ -4,6 +4,7 @@ Utility classes and functions for the Skylanders importer
 
 import struct
 from . import constants
+import bpy
 
 
 class NoeBitStream:
@@ -137,13 +138,15 @@ def decompressEdgeIndices(indexBuffer, indexCount):
 class Bone:
     """Helper class for bone data"""
 
-    def __init__(self, index, name, parentIndex, translation):
+    def __init__(self, index, name, parentIndex, translation, size_multiplier=1.5):
         self.index = index
         self.name = name if name else f"bone_{index}"
         self.parentIndex = parentIndex
         self.position = translation
         self.matrix = None
         self.children = []
+        self.size_multiplier = size_multiplier
+        self.blender_bone = None  # Store reference to created Blender bone
 
     def setMatrix(self, matrix_data, endian):
         """Parse matrix data from the file to create a bone matrix"""
@@ -177,3 +180,110 @@ class Bone:
         else:
             # Use the translation directly
             return self.position
+
+    def create_in_blender(self, armature, bone_map=None):
+        """Create this bone in a Blender armature"""
+        # Switch to edit mode to add bones
+        bpy.ops.object.mode_set(mode='EDIT')
+
+        # Create a new bone
+        edit_bone = armature.edit_bones.new(self.name)
+
+        # Set bone position using head and tail
+        position = self.getPosition()
+        edit_bone.head = position
+
+        # Set a default tail position (offset in Z direction)
+        # This can be adjusted based on your skeletal structure
+        tail_offset = self.size_multiplier
+        edit_bone.tail = (position[0], position[1], position[2] + tail_offset)
+
+        # Store reference to parent if available
+        if self.parentIndex >= 0:
+            parent_name = f"bone_{self.parentIndex}"
+            if bone_map and self.parentIndex in bone_map:
+                parent_name = bone_map[self.parentIndex].name
+
+            if parent_name in armature.edit_bones:
+                edit_bone.parent = armature.edit_bones[parent_name]
+
+                # Optionally connect bones if they're close enough
+                # edit_bone.use_connect = True
+
+        # Keep reference to the created bone
+        self.blender_bone = edit_bone
+        return edit_bone
+
+    def apply_transform(self, armature_obj):
+        """Apply the bone's transformation matrix in pose mode"""
+        if not self.matrix:
+            return
+
+        # Switch to pose mode
+        bpy.ops.object.mode_set(mode='POSE')
+
+        # Get the pose bone
+        if self.name in armature_obj.pose.bones:
+            pose_bone = armature_obj.pose.bones[self.name]
+
+            # Apply the matrix as a pose transformation
+            # Might need conversion from global to local space
+            from mathutils import Matrix
+
+            if self.matrix:
+                # Calculate local transformation
+                if pose_bone.parent:
+                    local_matrix = pose_bone.parent.matrix.inverted() @ self.matrix
+                else:
+                    local_matrix = self.matrix
+
+                pose_bone.matrix = local_matrix
+
+
+def create_armature_from_bones(bone_list, name="Armature"):
+    """Create a Blender armature from a list of Bone objects"""
+    import bpy
+
+    # Create a new armature data object
+    armature = bpy.data.armatures.new(name)
+
+    # Create a new object with the armature data
+    armature_obj = bpy.data.objects.new(name, armature)
+
+    # Add the armature to the scene
+    bpy.context.collection.objects.link(armature_obj)
+
+    # Select the armature object
+    bpy.context.view_layer.objects.active = armature_obj
+    armature_obj.select_set(True)
+
+    # Enter edit mode
+    bpy.ops.object.mode_set(mode='EDIT')
+
+    # Create map for parent lookup
+    bone_map = {bone.index: bone for bone in bone_list}
+
+    # First create all bones
+    for bone in bone_list:
+        edit_bone = armature.edit_bones.new(bone.name)
+
+        # Set position from translation or matrix
+        if bone.position:
+            edit_bone.head = bone.position
+            # Set a default length for the bone
+            edit_bone.tail = (
+                bone.position[0],
+                bone.position[1],
+                bone.position[2] + bone.size_multiplier
+            )
+
+        # Set parent if available
+        if bone.parentIndex >= 0 and bone.parentIndex in bone_map:
+            parent_name = bone_map[bone.parentIndex].name
+            if parent_name in armature.edit_bones:
+                edit_bone.parent = armature.edit_bones[parent_name]
+
+    # Return to object mode
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    return armature_obj

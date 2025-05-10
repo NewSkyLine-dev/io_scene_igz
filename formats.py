@@ -728,9 +728,13 @@ class PS3MeshObject:
             biBuffer = []
             for i in range(vertexCount):
                 for j in range(4):
-                    bwBuffer.append(skinBuffer[i*8+j*2+0])
+                    weightIdx = i*8+j*2+0
+                    # Or try i*8+(j+1)*2+1 if weights are shifted
+                    boneIdx = i*8+(j+1)*2+1# i*8+j*2+1
 
-                    boneIndex = skinBuffer[i*8+j*2+1]
+                    bwBuffer.append(skinBuffer[weightIdx])
+
+                    boneIndex = skinBuffer[boneIdx]
                     if boneIndex < boneMapSize0:
                         boneIndex += boneMapOffset0
                     else:

@@ -315,6 +315,11 @@ class sscIgzFile(igz_file.igzFile):
         endarg = constants.NOE_BIGENDIAN if self.endianness == "BE" else constants.NOE_LITTLEENDIAN
         index = 0
 
+        # Check if there are any corrupted bones
+        for bone in bones:
+            if bone[2] == -1:
+                bones.remove(bone)
+
         mtxStream = utils.NoeBitStream(self.models[-1].boneMatrices, endarg)
 
         for bone in bones:
