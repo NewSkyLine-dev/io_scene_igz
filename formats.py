@@ -730,7 +730,7 @@ class PS3MeshObject:
                 for j in range(4):
                     weightIdx = i*8+j*2+0
                     # Or try i*8+(j+1)*2+1 if weights are shifted
-                    boneIdx = i*8+(j+1)*2+1# i*8+j*2+1
+                    boneIdx = i*8+(j+1)*2+1  # i*8+j*2+1
 
                     bwBuffer.append(skinBuffer[weightIdx])
 
@@ -1162,7 +1162,7 @@ class ModelObject:
                 else:
                     # No children, create a small tail offset
                     edit_bone.tail = (
-                        position[0], position[1] + 0.05, position[2])
+                        position[0], position[1], position[2] + 5)
 
             # Exit edit mode
             bpy.ops.object.mode_set(mode='OBJECT')
