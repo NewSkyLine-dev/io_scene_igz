@@ -20,6 +20,7 @@ from bpy_extras.io_utils import ImportHelper
 from . import constants
 from . import utils
 from . import game_formats
+from typing import Any
 
 
 class ImportSkylandersIGZ(bpy.types.Operator, ImportHelper):
@@ -28,34 +29,35 @@ class ImportSkylandersIGZ(bpy.types.Operator, ImportHelper):
     bl_label = "Import Skylanders IGZ/BLD"
     bl_options = {'PRESET', 'UNDO'}
 
-    filename_ext = ".igz;.bld"
-    filter_glob: StringProperty(default="*.igz;*.bld", options={'HIDDEN'})
+    filename_ext: str = ".igz;.bld"
+    filter_glob: StringProperty = StringProperty(
+        default="*.igz;*.bld", options={'HIDDEN'})
 
-    build_meshes: BoolProperty(
+    build_meshes: BoolProperty = BoolProperty(
         name="Build Meshes",
         description="Whether to build the meshes or just parse the file",
         default=True,
     )
 
-    build_bones: BoolProperty(
+    build_bones: BoolProperty = BoolProperty(
         name="Build Bones",
         description="Whether to build the bones",
         default=True,
     )
 
-    build_faces: BoolProperty(
+    build_faces: BoolProperty = BoolProperty(
         name="Build Faces",
         description="Whether to build the faces",
         default=True,
     )
 
-    allow_wii: BoolProperty(
+    allow_wii: BoolProperty = BoolProperty(
         name="Allow Wii Models",
         description="Whether to allow Wii models (may be buggy)",
         default=True,
     )
 
-    def execute(self, context):
+    def execute(self, context: Any) -> set:
         # Set global variables from UI options
         constants.dBuildMeshes = self.build_meshes
         constants.dBuildBones = self.build_bones
@@ -75,11 +77,11 @@ class ImportSkylandersIGZ(bpy.types.Operator, ImportHelper):
                     return {'CANCELLED'}
 
                 # Reset stream and determine version
-                bs = utils.NoeBitStream(data, constants.NOE_BIGENDIAN)
+                bs = utils.NoeBitStream(data, constants.Endianness.BIG)
                 magic = bs.readUInt()
                 if magic == 0x015A4749:
                     bs = utils.NoeBitStream(
-                        data, constants.NOE_LITTLEENDIAN)
+                        data, constants.Endianness.LITTLE)
                     bs.readUInt()
 
                 version = bs.readUInt()

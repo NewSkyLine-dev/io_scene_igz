@@ -1,3 +1,6 @@
+from enum import Enum
+from typing import List
+
 dBuildMeshes = True      # Whether to build the meshes or just parse the file
 dBuildBones = True       # Whether to build the bones
 dBuildFaces = True       # Whether to build the index buffer
@@ -7,30 +10,41 @@ dFirstObjectOffset = -1
 # The highest number of models to extract before the user is prompted
 dModelThreshold = 50
 
-# Constants for platform identification and byte order
-NOE_BIGENDIAN = ">"
-NOE_LITTLEENDIAN = "<"
-NOESEEK_ABS = 0  # os.SEEK_SET
-NOESEEK_REL = 1  # os.SEEK_CUR
 
-# Edge Geometry Skin types
-EDGE_GEOM_SKIN_NONE = 0
-EDGE_GEOM_SKIN_NO_SCALING = 1
-EDGE_GEOM_SKIN_UNIFORM_SCALING = 2
-EDGE_GEOM_SKIN_NON_UNIFORM_SCALING = 3
-EDGE_GEOM_SKIN_SINGLE_BONE_NO_SCALING = 4
-EDGE_GEOM_SKIN_SINGLE_BONE_UNIFORM_SCALING = 5
-EDGE_GEOM_SKIN_SINGLE_BONE_NON_UNIFORM_SCALING = 6
+class Endianness(str, Enum):
+    BIG = ">"
+    LITTLE = "<"
 
-# Constants for primitive types
-RPGEO_POINTS = 0
-RPGEO_TRIANGLE = 3
-RPGEO_TRIANGLE_STRIP = 4
-RPGEO_TRIANGLE_FAN = 5
-RPGEO_TRIANGLE_QUADS = 6
+
+class SeekMode(int, Enum):
+    ABS = 0  # os.SEEK_SET
+    REL = 1  # os.SEEK_CUR
+
+# Edge Geometry Skin types as Enum for clarity
+
+
+class EdgeGeomSkinType(int, Enum):
+    NONE = 0
+    NO_SCALING = 1
+    UNIFORM_SCALING = 2
+    NON_UNIFORM_SCALING = 3
+    SINGLE_BONE_NO_SCALING = 4
+    SINGLE_BONE_UNIFORM_SCALING = 5
+    SINGLE_BONE_NON_UNIFORM_SCALING = 6
+
+# Primitive types as Enum
+
+
+class PrimitiveType(int, Enum):
+    POINTS = 0
+    TRIANGLE = 3
+    TRIANGLE_STRIP = 4
+    TRIANGLE_FAN = 5
+    TRIANGLE_QUADS = 6
+
 
 # Vertex maximum magnitude values
-vertexMaxMags = [
+vertexMaxMags: List[int] = [
     1,          # FLOAT1
     1,          # FLOAT2
     1,          # FLOAT3

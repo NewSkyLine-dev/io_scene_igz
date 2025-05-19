@@ -6,6 +6,7 @@ import struct
 import bpy
 import bmesh
 from mathutils import Matrix, Vector
+from typing import Any
 
 from . import utils
 from . import constants
@@ -15,370 +16,422 @@ from . import constants
 # ------------------------------------------------------------------------------
 
 
-def unpack_FLOAT1(data, element, endarg):
-    return [struct.unpack(endarg + 'f', data[element._offset:element._offset + 4])[0], 0.0, 0.0, 1.0]
+def unpack_FLOAT1(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
+    return [struct.unpack(f"{endian}f", data[element._offset:element._offset + 4])[0], 0.0, 0.0, 1.0]
 
 
-def unpack_FLOAT2(data, element, endarg):
+def unpack_FLOAT2(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     floats = struct.unpack(
-        endarg + 'ff', data[element._offset:element._offset + 8])
+        f"{endian}ff", data[element._offset:element._offset + 8])
     return [floats[0], floats[1], 0.0, 1.0]
 
 
-def unpack_FLOAT3(data, element, endarg):
+def unpack_FLOAT3(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     floats = struct.unpack(
-        endarg + 'fff', data[element._offset:element._offset + 12])
+        f"{endian}fff", data[element._offset:element._offset + 12])
     return [floats[0], floats[1], floats[2], 1.0]
 
 
-def unpack_FLOAT4(data, element, endarg):
+def unpack_FLOAT4(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     floats = struct.unpack(
-        endarg + 'ffff', data[element._offset:element._offset + 16])
+        f"{endian}ffff", data[element._offset:element._offset + 16])
     return [floats[0], floats[1], floats[2], floats[3]]
 
 
-def unpack_INT1(data, element, endarg):
+def unpack_INT1(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ints = struct.unpack(
-        endarg + 'i', data[element._offset:element._offset + 4])
+        f"{endian}i", data[element._offset:element._offset + 4])
     return [float(ints[0]), 0.0, 0.0, 1.0]
 
 
-def unpack_INT2(data, element, endarg):
+def unpack_INT2(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ints = struct.unpack(
-        endarg + 'ii', data[element._offset:element._offset + 8])
+        f"{endian}ii", data[element._offset:element._offset + 8])
     return [float(ints[0]), float(ints[1]), 0.0, 1.0]
 
 
-def unpack_INT3(data, element, endarg):
+def unpack_INT3(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ints = struct.unpack(
-        endarg + 'iii', data[element._offset:element._offset + 12])
+        f"{endian}iii", data[element._offset:element._offset + 12])
     return [float(ints[0]), float(ints[1]), float(ints[2]), 1.0]
 
 
-def unpack_INT4(data, element, endarg):
+def unpack_INT4(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ints = struct.unpack(
-        endarg + 'iiii', data[element._offset:element._offset + 16])
+        f"{endian}iiii", data[element._offset:element._offset + 16])
     return [float(ints[0]), float(ints[1]), float(ints[2]), float(ints[3])]
 
 
-def unpack_INT1N(data, element, endarg):
+def unpack_INT1N(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ints = struct.unpack(
-        endarg + 'i', data[element._offset:element._offset + 4])
+        f"{endian}i", data[element._offset:element._offset + 4])
     return [float(ints[0]) / 0x7FFFFFFF, 0.0, 0.0, 1.0]
 
 
-def unpack_INT2N(data, element, endarg):
+def unpack_INT2N(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ints = struct.unpack(
-        endarg + 'ii', data[element._offset:element._offset + 8])
+        f"{endian}ii", data[element._offset:element._offset + 8])
     return [float(ints[0]) / 0x7FFFFFFF, float(ints[1]) / 0x7FFFFFFF, 0.0, 1.0]
 
 
-def unpack_INT3N(data, element, endarg):
+def unpack_INT3N(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ints = struct.unpack(
-        endarg + 'iii', data[element._offset:element._offset + 12])
+        f"{endian}iii", data[element._offset:element._offset + 12])
     return [float(ints[0]) / 0x7FFFFFFF, float(ints[1]) / 0x7FFFFFFF, float(ints[2]) / 0x7FFFFFFF, 1.0]
 
 
-def unpack_INT4N(data, element, endarg):
+def unpack_INT4N(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ints = struct.unpack(
-        endarg + 'iiii', data[element._offset:element._offset + 16])
+        f"{endian}iiii", data[element._offset:element._offset + 16])
     return [float(ints[0]) / 0x7FFFFFFF, float(ints[1]) / 0x7FFFFFFF, float(ints[2]) / 0x7FFFFFFF, float(ints[3]) / 0x7FFFFFFF]
 
 
-def unpack_UINT1(data, element, endarg):
+def unpack_UINT1(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ints = struct.unpack(
-        endarg + 'I', data[element._offset:element._offset + 4])
+        f"{endian}I", data[element._offset:element._offset + 4])
     return [float(ints[0]), 0.0, 0.0, 1.0]
 
 
-def unpack_UINT2(data, element, endarg):
+def unpack_UINT2(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ints = struct.unpack(
-        endarg + 'II', data[element._offset:element._offset + 8])
+        f"{endian}II", data[element._offset:element._offset + 8])
     return [float(ints[0]), float(ints[1]), 0.0, 1.0]
 
 
-def unpack_UINT3(data, element, endarg):
+def unpack_UINT3(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ints = struct.unpack(
-        endarg + 'III', data[element._offset:element._offset + 12])
+        f"{endian}III", data[element._offset:element._offset + 12])
     return [float(ints[0]), float(ints[1]), float(ints[2]), 1.0]
 
 
-def unpack_UINT4(data, element, endarg):
+def unpack_UINT4(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ints = struct.unpack(
-        endarg + 'IIII', data[element._offset:element._offset + 16])
+        f"{endian}IIII", data[element._offset:element._offset + 16])
     return [float(ints[0]), float(ints[1]), float(ints[2]), float(ints[3])]
 
 
-def unpack_UINT1N(data, element, endarg):
+def unpack_UINT1N(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ints = struct.unpack(
-        endarg + 'I', data[element._offset:element._offset + 4])
+        f"{endian}I", data[element._offset:element._offset + 4])
     return [float(ints[0]) / 0xFFFFFFFF, 0.0, 0.0, 1.0]
 
 
-def unpack_UINT2N(data, element, endarg):
+def unpack_UINT2N(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ints = struct.unpack(
-        endarg + 'II', data[element._offset:element._offset + 8])
+        f"{endian}II", data[element._offset:element._offset + 8])
     return [float(ints[0]) / 0xFFFFFFFF, float(ints[1]) / 0xFFFFFFFF, 0.0, 1.0]
 
 
-def unpack_UINT3N(data, element, endarg):
+def unpack_UINT3N(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ints = struct.unpack(
-        endarg + 'III', data[element._offset:element._offset + 12])
+        f"{endian}III", data[element._offset:element._offset + 12])
     return [float(ints[0]) / 0xFFFFFFFF, float(ints[1]) / 0xFFFFFFFF, float(ints[2]) / 0xFFFFFFFF, 1.0]
 
 
-def unpack_UINT4N(data, element, endarg):
+def unpack_UINT4N(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ints = struct.unpack(
-        endarg + 'IIII', data[element._offset:element._offset + 16])
+        f"{endian}IIII", data[element._offset:element._offset + 16])
     return [float(ints[0]) / 0xFFFFFFFF, float(ints[1]) / 0xFFFFFFFF, float(ints[2]) / 0xFFFFFFFF, float(ints[3]) / 0xFFFFFFFF]
 
 
-def unpack_SHORT1(data, element, endarg):
+def unpack_SHORT1(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     shorts = struct.unpack(
-        endarg + 'h', data[element._offset:element._offset + 2])
+        f"{endian}h", data[element._offset:element._offset + 2])
     return [float(shorts[0]), 0.0, 0.0, 1.0]
 
 
-def unpack_SHORT2(data, element, endarg):
+def unpack_SHORT2(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     shorts = struct.unpack(
-        endarg + 'hh', data[element._offset:element._offset + 4])
+        f"{endian}hh", data[element._offset:element._offset + 4])
     return [float(shorts[0]), float(shorts[1]), 0.0, 1.0]
 
 
-def unpack_SHORT3(data, element, endarg):
+def unpack_SHORT3(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     shorts = struct.unpack(
-        endarg + 'hhh', data[element._offset:element._offset + 6])
+        f"{endian}hhh", data[element._offset:element._offset + 6])
     return [float(shorts[0]), float(shorts[1]), float(shorts[2]), 1.0]
 
 
-def unpack_SHORT4(data, element, endarg):
+def unpack_SHORT4(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     shorts = struct.unpack(
-        endarg + 'hhhh', data[element._offset:element._offset + 8])
+        f"{endian}hhhh", data[element._offset:element._offset + 8])
     return [float(shorts[0]), float(shorts[1]), float(shorts[2]), float(shorts[3])]
 
 
-def unpack_SHORT1N(data, element, endarg):
+def unpack_SHORT1N(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     shorts = struct.unpack(
-        endarg + 'h', data[element._offset:element._offset + 2])
+        f"{endian}h", data[element._offset:element._offset + 2])
     return [float(shorts[0]) / 0x7FFF, 0.0, 0.0, 1.0]
 
 
-def unpack_SHORT2N(data, element, endarg):
+def unpack_SHORT2N(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     shorts = struct.unpack(
-        endarg + 'hh', data[element._offset:element._offset + 4])
+        f"{endian}hh", data[element._offset:element._offset + 4])
     return [float(shorts[0]) / 0x7FFF, float(shorts[1]) / 0x7FFF, 0.0, 1.0]
 
 
-def unpack_SHORT3N(data, element, endarg):
+def unpack_SHORT3N(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     shorts = struct.unpack(
-        endarg + 'hhh', data[element._offset:element._offset + 6])
+        f"{endian}hhh", data[element._offset:element._offset + 6])
     return [float(shorts[0]) / 0x7FFF, float(shorts[1]) / 0x7FFF, float(shorts[2]) / 0x7FFF, 1.0]
 
 
-def unpack_SHORT4N(data, element, endarg):
+def unpack_SHORT4N(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     shorts = struct.unpack(
-        endarg + 'hhhh', data[element._offset:element._offset + 8])
+        f"{endian}hhhh", data[element._offset:element._offset + 8])
     return [float(shorts[0]) / 0x7FFF, float(shorts[1]) / 0x7FFF, float(shorts[2]) / 0x7FFF, float(shorts[3]) / 0x7FFF]
 
 
-def unpack_USHORT1(data, element, endarg):
+def unpack_USHORT1(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ushorts = struct.unpack(
-        endarg + 'H', data[element._offset:element._offset + 2])
+        f"{endian}H", data[element._offset:element._offset + 2])
     return [float(ushorts[0]), 0.0, 0.0, 1.0]
 
 
-def unpack_USHORT2(data, element, endarg):
+def unpack_USHORT2(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ushorts = struct.unpack(
-        endarg + 'HH', data[element._offset:element._offset + 4])
+        f"{endian}HH", data[element._offset:element._offset + 4])
     return [float(ushorts[0]), float(ushorts[1]), 0.0, 1.0]
 
 
-def unpack_USHORT3(data, element, endarg):
+def unpack_USHORT3(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ushorts = struct.unpack(
-        endarg + 'HHH', data[element._offset:element._offset + 6])
+        f"{endian}HHH", data[element._offset:element._offset + 6])
     return [float(ushorts[0]), float(ushorts[1]), float(ushorts[2]), 1.0]
 
 
-def unpack_USHORT4(data, element, endarg):
+def unpack_USHORT4(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ushorts = struct.unpack(
-        endarg + 'HHHH', data[element._offset:element._offset + 8])
+        f"{endian}HHHH", data[element._offset:element._offset + 8])
     return [float(ushorts[0]), float(ushorts[1]), float(ushorts[2]), float(ushorts[3])]
 
 
-def unpack_USHORT1N(data, element, endarg):
+def unpack_USHORT1N(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ushorts = struct.unpack(
-        endarg + 'H', data[element._offset:element._offset + 2])
+        f"{endian}H", data[element._offset:element._offset + 2])
     return [float(ushorts[0]) / 0xFFFF, 0.0, 0.0, 1.0]
 
 
-def unpack_USHORT2N(data, element, endarg):
+def unpack_USHORT2N(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ushorts = struct.unpack(
-        endarg + 'HH', data[element._offset:element._offset + 4])
+        f"{endian}HH", data[element._offset:element._offset + 4])
     return [float(ushorts[0]) / 0xFFFF, float(ushorts[1]) / 0xFFFF, 0.0, 1.0]
 
 
-def unpack_USHORT3N(data, element, endarg):
+def unpack_USHORT3N(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ushorts = struct.unpack(
-        endarg + 'HHH', data[element._offset:element._offset + 6])
+        f"{endian}HHH", data[element._offset:element._offset + 6])
     return [float(ushorts[0]) / 0xFFFF, float(ushorts[1]) / 0xFFFF, float(ushorts[2]) / 0xFFFF, 1.0]
 
 
-def unpack_USHORT4N(data, element, endarg):
+def unpack_USHORT4N(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     ushorts = struct.unpack(
-        endarg + 'HHHH', data[element._offset:element._offset + 8])
+        f"{endian}HHHH", data[element._offset:element._offset + 8])
     return [float(ushorts[0]) / 0xFFFF, float(ushorts[1]) / 0xFFFF, float(ushorts[2]) / 0xFFFF, float(ushorts[3]) / 0xFFFF]
 
 
-def unpack_BYTE1(data, element, endarg):
+def unpack_BYTE1(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     sbytes = struct.unpack(
-        endarg + 'b', data[element._offset:element._offset + 1])
+        f"{endian}b", data[element._offset:element._offset + 1])
     return [float(sbytes[0]), 0.0, 0.0, 1.0]
 
 
-def unpack_BYTE2(data, element, endarg):
+def unpack_BYTE2(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     sbytes = struct.unpack(
-        endarg + 'bb', data[element._offset:element._offset + 2])
+        f"{endian}bb", data[element._offset:element._offset + 2])
     return [float(sbytes[0]), float(sbytes[1]), 0.0, 1.0]
 
 
-def unpack_BYTE3(data, element, endarg):
+def unpack_BYTE3(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     sbytes = struct.unpack(
-        endarg + 'bbb', data[element._offset:element._offset + 3])
+        f"{endian}bbb", data[element._offset:element._offset + 3])
     return [float(sbytes[0]), float(sbytes[1]), float(sbytes[2]), 1.0]
 
 
-def unpack_BYTE4(data, element, endarg):
+def unpack_BYTE4(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     sbytes = struct.unpack(
-        endarg + 'bbbb', data[element._offset:element._offset + 4])
+        f"{endian}bbbb", data[element._offset:element._offset + 4])
     return [float(sbytes[0]), float(sbytes[1]), float(sbytes[2]), float(sbytes[3])]
 
 
-def unpack_BYTE1N(data, element, endarg):
+def unpack_BYTE1N(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     sbytes = struct.unpack(
-        endarg + 'b', data[element._offset:element._offset + 1])
+        f"{endian}b", data[element._offset:element._offset + 1])
     return [float(sbytes[0]) / 0x7F, 0.0, 0.0, 1.0]
 
 
-def unpack_BYTE2N(data, element, endarg):
+def unpack_BYTE2N(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     sbytes = struct.unpack(
-        endarg + 'bb', data[element._offset:element._offset + 2])
+        f"{endian}bb", data[element._offset:element._offset + 2])
     return [float(sbytes[0]) / 0x7F, float(sbytes[1]) / 0x7F, 0.0, 1.0]
 
 
-def unpack_BYTE3N(data, element, endarg):
+def unpack_BYTE3N(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     sbytes = struct.unpack(
-        endarg + 'bbb', data[element._offset:element._offset + 3])
+        f"{endian}bbb", data[element._offset:element._offset + 3])
     return [float(sbytes[0]) / 0x7F, float(sbytes[1]) / 0x7F, float(sbytes[2]) / 0x7F, 1.0]
 
 
-def unpack_BYTE4N(data, element, endarg):
+def unpack_BYTE4N(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     sbytes = struct.unpack(
-        endarg + 'bbbb', data[element._offset:element._offset + 4])
+        f"{endian}bbbb", data[element._offset:element._offset + 4])
     return [float(sbytes[0]) / 0x7F, float(sbytes[1]) / 0x7F, float(sbytes[2]) / 0x7F, float(sbytes[3]) / 0x7F]
 
 
-def unpack_UBYTE1(data, element, endarg):
+def unpack_UBYTE1(data: bytes, element: Any, endarg: str) -> list[float]:
     return [float(data[element._offset + 0]), 0.0, 0.0, 1.0]
 
 
-def unpack_UBYTE2(data, element, endarg):
+def unpack_UBYTE2(data: bytes, element: Any, endarg: str) -> list[float]:
     return [float(data[element._offset + 0]), float(data[element._offset + 1]), 0.0, 1.0]
 
 
-def unpack_UBYTE3(data, element, endarg):
+def unpack_UBYTE3(data: bytes, element: Any, endarg: str) -> list[float]:
     return [float(data[element._offset + 0]), float(data[element._offset + 1]), float(data[element._offset + 2]), 1.0]
 
 
-def unpack_UBYTE4(data, element, endarg):
+def unpack_UBYTE4(data: bytes, element: Any, endarg: str) -> list[float]:
     return [float(data[element._offset + 0]), float(data[element._offset + 1]), float(data[element._offset + 2]), float(data[element._offset + 3])]
 
 
-def unpack_UBYTE4_ENDIAN(data, element, endarg):
+def unpack_UBYTE4_ENDIAN(data: bytes, element: Any, endarg: str) -> list[float]:
     return [float(data[element._offset + 3]), float(data[element._offset + 2]), float(data[element._offset + 1]), float(data[element._offset + 0])]
 
 
-def unpack_UBYTE1N(data, element, endarg):
+def unpack_UBYTE1N(data: bytes, element: Any, endarg: str) -> list[float]:
     return [float(data[element._offset + 0] / 0xFF), 0.0, 0.0, 1.0]
 
 
-def unpack_UBYTE2N(data, element, endarg):
+def unpack_UBYTE2N(data: bytes, element: Any, endarg: str) -> list[float]:
     return [float(data[element._offset + 0] / 0xFF), float(data[element._offset + 1] / 0xFF), 0.0, 1.0]
 
 
-def unpack_UBYTE3N(data, element, endarg):
+def unpack_UBYTE3N(data: bytes, element: Any, endarg: str) -> list[float]:
     return [float(data[element._offset + 0] / 0xFF), float(data[element._offset + 1] / 0xFF), float(data[element._offset + 2] / 0xFF), 1.0]
 
 
-def unpack_UBYTE4N(data, element, endarg):
+def unpack_UBYTE4N(data: bytes, element: Any, endarg: str) -> list[float]:
     return [float(data[element._offset + 0]) / 0xFF, float(data[element._offset + 1]) / 0xFF, float(data[element._offset + 2]) / 0xFF, float(data[element._offset + 3]) / 0xFF]
 
 
-def unpack_UBYTE4_X4(data, element, endarg):
+def unpack_UBYTE4_X4(data: bytes, element: Any, endarg: str) -> list[float]:
     return [float(data[element._offset + 0] * 0.25), float(data[element._offset + 1] * 0.25), float(data[element._offset + 2] * 0.25), float(data[element._offset + 3] * 0.25)]
 
 
-def unpack_HALF2(data, element, endarg):
+def unpack_HALF2(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     bs = utils.NoeBitStream(
-        data, constants.NOE_BIGENDIAN if endarg == '>' else constants.NOE_LITTLEENDIAN)
+        data, constants.Endianness.BIG if endian == '>' else constants.Endianness.LITTLE)
     bs.seek(element._offset)
     return [float(bs.readHalfFloat()), float(bs.readHalfFloat()), 0.0, 1.0]
 
 
-def unpack_HALF4(data, element, endarg):
+def unpack_HALF4(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     bs = utils.NoeBitStream(
-        data, constants.NOE_BIGENDIAN if endarg == '>' else constants.NOE_LITTLEENDIAN)
+        data, constants.Endianness.BIG if endian == '>' else constants.Endianness.LITTLE)
     bs.seek(element._offset)
     return [float(bs.readHalfFloat()), float(bs.readHalfFloat()), float(bs.readHalfFloat()), float(bs.readHalfFloat())]
 
 
-def unpack_UNUSED(data, element, endarg):
+def unpack_UNUSED(data: bytes, element: Any, endarg: str) -> list[float]:
     vec4 = unpack_SHORT4(data, element, endarg)
     return [vec4[0] / vec4[3], vec4[1] / vec4[3], vec4[2] / vec4[3], vec4[3]]
 
 
-def unpack_UNDEFINED_0(data, element, endarg):
+def unpack_UNDEFINED_0(data: bytes, element: Any, endarg: str) -> list[float]:
     print("Got IG_VERTEX_TYPE_UNDEFINED_0")
     return [0.0, 0.0, 0.0, 0.0]
 
 
-def unpack_UBYTE4N_COLOR_ARGB(data, element, endarg):
+def unpack_UBYTE4N_COLOR_ARGB(data: bytes, element: Any, endarg: str) -> list[float]:
     color = unpack_UBYTE4N(data, element, endarg)
     return [color[1], color[2], color[3], color[0]]
 
 
-def unpack_UBYTE2N_COLOR_5650(data, element, endarg):
+def unpack_UBYTE2N_COLOR_5650(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     color = struct.unpack(
-        endarg + 'H', data[element._offset:element._offset + 2])[0]
+        f"{endian}H", data[element._offset:element._offset + 2])[0]
     return [((color >> 11) & 31) / 31, ((color >> 5) & 63) / 63, (color & 31) / 31, 1]
 
 
-def unpack_UBYTE2N_COLOR_5551(data, element, endarg):
+def unpack_UBYTE2N_COLOR_5551(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     color = struct.unpack(
-        endarg + 'H', data[element._offset:element._offset + 2])[0]
+        f"{endian}H", data[element._offset:element._offset + 2])[0]
     return [(color & 31) / 31, ((color >> 5) & 31) / 31, ((color >> 10) & 31) / 31, (color >> 15) & 1]
 
 
-def unpack_UBYTE2N_COLOR_4444(data, element, endarg):
+def unpack_UBYTE2N_COLOR_4444(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     color = struct.unpack(
-        endarg + 'H', data[element._offset:element._offset + 2])[0]
+        f"{endian}H", data[element._offset:element._offset + 2])[0]
     return [(color & 15) / 15, ((color >> 4) & 15) / 15, ((color >> 8) & 15) / 15, ((color >> 12) & 15) / 15]
 
 
-def unpack_UDEC3(data, element, endarg):
+def unpack_UDEC3(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     raw = struct.unpack(
-        endarg + "I", data[element._offset:element._offset + 4])[0]
+        f"{endian}I", data[element._offset:element._offset + 4])[0]
     return [float(raw & 0x3FF), float((raw >> 10) & 0x3FF), float((raw >> 20) & 0x3FF), 1.0]
 
 
-def unpack_UDEC3_OES(data, element, endarg):
+def unpack_UDEC3_OES(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     raw = struct.unpack(
-        endarg + "I", data[element._offset:element._offset + 4])[0]
+        f"{endian}I", data[element._offset:element._offset + 4])[0]
     return [float(raw >> 22), float((raw >> 12) & 0x3FF), float((raw >> 2) & 0x3FF), 1.0]
 
 
-def unpack_DEC3N(data, element, endarg):
+def unpack_DEC3N(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     raw = struct.unpack(
-        endarg + "I", data[element._offset:element._offset + 4])[0]
+        f"{endian}I", data[element._offset:element._offset + 4])[0]
     return [
         float((((raw >> 0) & 0x1FF) / 511.0) *
               (1 if (raw >> 0) & 0x200 == 0 else -1)),
@@ -390,9 +443,10 @@ def unpack_DEC3N(data, element, endarg):
     ]
 
 
-def unpack_DEC3N_OES(data, element, endarg):
+def unpack_DEC3N_OES(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     raw = struct.unpack(
-        endarg + "I", data[element._offset:element._offset + 4])[0]
+        f"{endian}I", data[element._offset:element._offset + 4])[0]
     return [
         float((((raw >> 2) & 0x1FF) / 511.0) *
               (1 if (raw >> 2) & 0x200 == 0 else -1)),
@@ -404,9 +458,10 @@ def unpack_DEC3N_OES(data, element, endarg):
     ]
 
 
-def unpack_DEC3N_S11_11_10(data, element, endarg):
+def unpack_DEC3N_S11_11_10(data: bytes, element: Any, endarg: str) -> list[float]:
+    endian = endarg.value if hasattr(endarg, 'value') else endarg
     raw = struct.unpack(
-        endarg + "I", data[element._offset:element._offset + 4])[0]
+        f"{endian}I", data[element._offset:element._offset + 4])[0]
     return [
         float((((raw >> 0) & 0x3FF) / 1023.0) *
               (1 if (raw >> 0) & 0x400 == 0 else -1)),
@@ -420,34 +475,34 @@ def unpack_DEC3N_S11_11_10(data, element, endarg):
 # Edge geometry unpack functions
 
 
-def edgeUnpack_I16N(data, offset):
+def edgeUnpack_I16N(data: bytes, offset: int) -> bytes:
     return struct.pack('>f', float(struct.unpack('>h', data[offset:offset + 2])[0]) / 0x7FFF)
 
 
-def edgeUnpack_F32(data, offset):
+def edgeUnpack_F32(data: bytes, offset: int) -> bytes:
     return data[offset:offset + 4]
 
 
-def edgeUnpack_F16(data, offset):
-    bs = utils.NoeBitStream(data, constants.NOE_BIGENDIAN)
+def edgeUnpack_F16(data: bytes, offset: int) -> bytes:
+    bs = utils.NoeBitStream(data, constants.Endianness.BIG)
     bs.seek(offset)
     return struct.pack('>f', float(bs.readHalfFloat()))
 
 
-def edgeUnpack_U8N(data, offset):
+def edgeUnpack_U8N(data: bytes, offset: int) -> bytes:
     return struct.pack('>f', float(data[offset]) / 0x7F)
 
 
-def edgeUnpack_I16(data, offset):
+def edgeUnpack_I16(data: bytes, offset: int) -> bytes:
     return struct.pack('>f', float(struct.unpack('>h', data[offset:offset + 2])[0]))
 
 
-def edgeUnpack_X11Y11Z10N(data, offset):
+def edgeUnpack_X11Y11Z10N(data: bytes, offset: int) -> bytes:
     raw = struct.unpack('>I', data[offset:offset + 4])[0]
     return struct.pack('>fff', ((raw & 0x000007FF) >> 0) / 0x7FF, ((raw & 0x003FF800) >> 11) / 0x7FF, ((raw & 0xFFC00000) >> 22) / 0x3FF)
 
 
-def edgeUnpack_U8(data, offset):
+def edgeUnpack_U8(data: bytes, offset: int) -> float:
     return float(data[offset])
 
 
@@ -635,15 +690,15 @@ class igVertexElement:
         self._usageIndex = data[5]
         self._packDataOffset = data[6]
         self._packTypeAndFracHint = data[7]
-        self._offset = struct.unpack(endarg + 'H', data[8:10])[0]
-        self._freq = struct.unpack(endarg + 'H', data[10:12])[0]
+        self._offset = struct.unpack(f"{endarg}H", data[8:10])[0]
+        self._freq = struct.unpack(f"{endarg}H", data[10:12])[0]
 
     def unpack(self, vertexBuffer, stride, packData, endarg, debugPrint=False):
         vattributes = []
 
         scale = 1
         if (self._packTypeAndFracHint & 7) == 2 and packData is not None:
-            scale /= 1 << struct.unpack(endarg + 'I', bytes(
+            scale /= 1 << struct.unpack(f"{endarg}I", bytes(
                 packData[self._packDataOffset:self._packDataOffset + 4]))[0]
             print(f"scale is 1 / {1 / scale}")
 
@@ -658,7 +713,7 @@ class igVertexElement:
                 if magnitude < currMag:
                     magnitude = currMag
             vattributes.extend(bytes(struct.pack(
-                endarg + 'ffff', attribute[0] * scale, attribute[1] * scale, attribute[2] * scale, attribute[3])))
+                f"{endarg}ffff", attribute[0] * scale, attribute[1] * scale, attribute[2] * scale, attribute[3])))
         if debugPrint:
             print(f"magnitude: {magnitude * (scale*scale)}")
         return bytes(vattributes)
@@ -701,12 +756,12 @@ class PS3MeshObject:
 
     def getPs3BoneStuff(self):
         skinningFlags = self.spuConfigInfo.indexesFlavorAndSkinningFlavor & 0xF
-        if skinningFlags == constants.EDGE_GEOM_SKIN_NONE:
+        if skinningFlags == constants.EdgeGeomSkinType.NONE:
             return None
 
-        useOneBone = skinningFlags in [constants.EDGE_GEOM_SKIN_SINGLE_BONE_NO_SCALING,
-                                       constants.EDGE_GEOM_SKIN_SINGLE_BONE_UNIFORM_SCALING,
-                                       constants.EDGE_GEOM_SKIN_SINGLE_BONE_NON_UNIFORM_SCALING]
+        useOneBone = skinningFlags in [constants.EdgeGeomSkinType.SINGLE_BONE_NO_SCALING,
+                                       constants.EdgeGeomSkinType.SINGLE_BONE_UNIFORM_SCALING,
+                                       constants.EdgeGeomSkinType.SINGLE_BONE_NON_UNIFORM_SCALING]
 
         boneMapOffset0 = self.spuConfigInfo.skinMatrixOffset0 // 0x30
         boneMapOffset1 = self.spuConfigInfo.skinMatrixOffset1 // 0x30
@@ -761,7 +816,7 @@ class MeshObject:
         self.skipBuild = False
         self.vertexElements = []
         self.vertexStreams = []
-        self.primType = constants.RPGEO_TRIANGLE
+        self.primType = constants.PrimitiveType.TRIANGLE
         self.indexCount = 0
         self.boneMapIndex = 0
         self.transformation = None
@@ -901,7 +956,7 @@ class MeshObject:
                     self.boneIndices.append(indices)
 
         # Process index data
-        if constants.dBuildFaces and self.primType != constants.RPGEO_TRIANGLE_STRIP:
+        if constants.dBuildFaces and self.primType != constants.PrimitiveType.TRIANGLE_STRIP:
             if self.vertexCount <= 0xFFFF:
                 # Extract triangles from 16-bit indices
                 for i in range(0, self.indexCount, 3):
@@ -924,7 +979,7 @@ class MeshObject:
                         idx3 = struct.unpack(
                             endarg + 'I', self.indexBuffer[(i + 2) * 4:(i + 3) * 4])[0]
                         self.faces.append((idx1, idx2, idx3))
-        elif constants.dBuildFaces and self.primType == constants.RPGEO_TRIANGLE_STRIP:
+        elif constants.dBuildFaces and self.primType == constants.PrimitiveType.TRIANGLE_STRIP:
             # Handle triangle strips - simplified for now
             # A proper implementation would convert strips to triangles
             pass
@@ -1050,12 +1105,12 @@ class MeshObject:
         fVBuf = []
         for i in range(self.vertexCount):
             coord = struct.unpack(
-                endarg + 'hhh', self.vertexBuffers[0][i * self.vertexStrides[0]+0:i * self.vertexStrides[0]+6])
+                f"{endarg}hhh", self.vertexBuffers[0][i * self.vertexStrides[0]+0:i * self.vertexStrides[0]+6])
             scale = struct.unpack(
-                endarg + 'h', self.vertexBuffers[0][i * self.vertexStrides[0]+6:i * self.vertexStrides[0]+8])[0]
-            fVBuf.extend(bytes(struct.pack(endarg + "f", coord[0] / scale)))
-            fVBuf.extend(bytes(struct.pack(endarg + "f", coord[1] / scale)))
-            fVBuf.extend(bytes(struct.pack(endarg + "f", coord[2] / scale)))
+                f"{endarg}h", self.vertexBuffers[0][i * self.vertexStrides[0]+6:i * self.vertexStrides[0]+8])[0]
+            fVBuf.extend(bytes(struct.pack(f"{endarg}f", coord[0] / scale)))
+            fVBuf.extend(bytes(struct.pack(f"{endarg}f", coord[1] / scale)))
+            fVBuf.extend(bytes(struct.pack(f"{endarg}f", coord[2] / scale)))
         return bytes(fVBuf)
 
     def handlePackData(self, vertexBuff, stride):
@@ -1260,7 +1315,7 @@ class ModelObject:
         self.skipBuild = False
         self.vertexElements = []
         self.vertexStreams = []
-        self.primType = constants.RPGEO_TRIANGLE
+        self.primType = constants.PrimitiveType.TRIANGLE
         self.indexCount = 0
         self.boneMapIndex = 0
         self.transformation = None
@@ -1374,4 +1429,56 @@ class ModelObject:
                 # Extract weights
                 for i in range(self.vertexCount):
                     weights = []
-                    # for j in range(elem"""
+                    for j in range(elem._count):
+                        weight = struct.unpack(
+                            endarg + 'f', vblendweights[i * 0x10 + j * 4:i * 0x10 + (j + 1) * 4])[0]
+                        weights.append(weight)
+                    # Pad with zeros if needed
+                    while len(weights) < 4:
+                        weights.append(0.0)
+                    self.weights.append(weights)
+
+            if elem._usage == 8 and elem._usageIndex == 0 and constants.dBuildBones:  # IG_VERTEX_USAGE_BLENDINDICES
+                vfblendindices = elem.unpack(
+                    stream, streamSize, packData, endarg)
+
+                # Extract bone indices
+                for i in range(self.vertexCount):
+                    indices = []
+                    for j in range(elem._count):
+                        index = int(struct.unpack(
+                            endarg + 'f', vfblendindices[i * 0x10 + j * 4:i * 0x10 + (j + 1) * 4])[0])
+                        indices.append(index)
+                    # Pad with zeros if needed
+                    while len(indices) < 4:
+                        indices.append(0)
+                    self.boneIndices.append(indices)
+
+        # Process index data
+        if constants.dBuildFaces and self.primType != constants.PrimitiveType.TRIANGLE_STRIP:
+            if self.vertexCount <= 0xFFFF:
+                # Extract triangles from 16-bit indices
+                for i in range(0, self.indexCount, 3):
+                    if i + 2 < self.indexCount:
+                        idx1 = struct.unpack(
+                            endarg + 'H', self.indexBuffer[i * 2:(i + 1) * 2])[0]
+                        idx2 = struct.unpack(
+                            endarg + 'H', self.indexBuffer[(i + 1) * 2:(i + 2) * 2])[0]
+                        idx3 = struct.unpack(
+                            endarg + 'H', self.indexBuffer[(i + 2) * 2:(i + 3) * 2])[0]
+                        self.faces.append((idx1, idx2, idx3))
+            else:
+                # Extract triangles from 32-bit indices
+                for i in range(0, self.indexCount, 3):
+                    if i + 2 < self.indexCount:
+                        idx1 = struct.unpack(
+                            endarg + 'I', self.indexBuffer[i * 4:(i + 1) * 4])[0]
+                        idx2 = struct.unpack(
+                            endarg + 'I', self.indexBuffer[(i + 1) * 4:(i + 2) * 4])[0]
+                        idx3 = struct.unpack(
+                            endarg + 'I', self.indexBuffer[(i + 2) * 4:(i + 3) * 4])[0]
+                        self.faces.append((idx1, idx2, idx3))
+        elif constants.dBuildFaces and self.primType == constants.PrimitiveType.TRIANGLE_STRIP:
+            # Handle triangle strips - simplified for now
+            # A proper implementation would convert strips to triangles
+            pass

@@ -5,63 +5,75 @@ Utility classes and functions for the Skylanders importer
 import struct
 from . import constants
 import bpy
+from typing import Any
 
 
 class NoeBitStream:
     """
     Reimplementation of Noesis's stream functionality for reading binary data
     """
+    data: bytes
+    endian: str
+    offset: int
 
-    def __init__(self, data, endian=constants.NOE_LITTLEENDIAN):
+    def __init__(self, data: bytes, endian: str = constants.Endianness.LITTLE) -> None:
         self.data = data
         self.endian = endian
         self.offset = 0
 
-    def seek(self, offset, whence=constants.NOESEEK_ABS):
-        if whence == constants.NOESEEK_ABS:
+    def seek(self, offset: int, whence: int = constants.SeekMode.ABS) -> int:
+        if whence == constants.SeekMode.ABS:
             self.offset = offset
-        elif whence == constants.NOESEEK_REL:
+        elif whence == constants.SeekMode.REL:
             self.offset += offset
         return self.offset
 
-    def tell(self):
+    def tell(self) -> int:
         return self.offset
 
-    def readBytes(self, size):
+    def readBytes(self, size: int) -> bytes:
         bytes_data = self.data[self.offset:self.offset + size]
         self.offset += size
         return bytes_data
 
-    def readUInt(self):
-        val = struct.unpack(self.endian + 'I',
-                            self.data[self.offset:self.offset + 4])[0]
+    def readUInt(self) -> int:
+        endian = self.endian.value if hasattr(
+            self.endian, 'value') else self.endian
+        val = struct.unpack(
+            f"{endian}I", self.data[self.offset:self.offset + 4])[0]
         self.offset += 4
         return val
 
-    def readUInt64(self):
-        val = struct.unpack(self.endian + 'Q',
-                            self.data[self.offset:self.offset + 8])[0]
+    def readUInt64(self) -> int:
+        endian = self.endian.value if hasattr(
+            self.endian, 'value') else self.endian
+        val = struct.unpack(
+            f"{endian}Q", self.data[self.offset:self.offset + 8])[0]
         self.offset += 8
         return val
 
-    def readInt(self):
-        val = struct.unpack(self.endian + 'i',
-                            self.data[self.offset:self.offset + 4])[0]
+    def readInt(self) -> int:
+        endian = self.endian.value if hasattr(
+            self.endian, 'value') else self.endian
+        val = struct.unpack(
+            f"{endian}i", self.data[self.offset:self.offset + 4])[0]
         self.offset += 4
         return val
 
-    def readUShort(self):
-        val = struct.unpack(self.endian + 'H',
-                            self.data[self.offset:self.offset + 2])[0]
+    def readUShort(self) -> int:
+        endian = self.endian.value if hasattr(
+            self.endian, 'value') else self.endian
+        val = struct.unpack(
+            endian + 'H', self.data[self.offset:self.offset + 2])[0]
         self.offset += 2
         return val
 
-    def readUByte(self):
+    def readUByte(self) -> int:
         val = self.data[self.offset]
         self.offset += 1
         return val
 
-    def readString(self):
+    def readString(self) -> str:
         start = self.offset
         while self.offset < len(self.data) and self.data[self.offset] != 0:
             self.offset += 1
@@ -71,25 +83,31 @@ class NoeBitStream:
             self.offset += 1
         return result
 
-    def readFloat(self):
-        val = struct.unpack(self.endian + 'f',
-                            self.data[self.offset:self.offset + 4])[0]
+    def readFloat(self) -> float:
+        endian = self.endian.value if hasattr(
+            self.endian, 'value') else self.endian
+        val = struct.unpack(
+            endian + 'f', self.data[self.offset:self.offset + 4])[0]
         self.offset += 4
         return val
 
-    def readDouble(self):
-        val = struct.unpack(self.endian + 'd',
-                            self.data[self.offset:self.offset + 8])[0]
+    def readDouble(self) -> float:
+        endian = self.endian.value if hasattr(
+            self.endian, 'value') else self.endian
+        val = struct.unpack(
+            endian + 'd', self.data[self.offset:self.offset + 8])[0]
         self.offset += 8
         return val
 
-    def readShort(self):
-        val = struct.unpack(self.endian + 'h',
-                            self.data[self.offset:self.offset + 2])[0]
+    def readShort(self) -> int:
+        endian = self.endian.value if hasattr(
+            self.endian, 'value') else self.endian
+        val = struct.unpack(
+            endian + 'h', self.data[self.offset:self.offset + 2])[0]
         self.offset += 2
         return val
 
-    def readHalfFloat(self):
+    def readHalfFloat(self) -> float:
         """Convert half precision (16-bit) float to regular float"""
         half = struct.unpack(
             self.endian + 'H', self.data[self.offset:self.offset + 2])[0]
@@ -117,7 +135,7 @@ class NoeBitStream:
         return ((-1) ** sign) * (1 + mantissa / 1024.0) * (2 ** (exponent - 15))
 
 
-def decompressEdgeIndices(indexBuffer, indexCount):
+def decompressEdgeIndices(indexBuffer: bytes, indexCount: int) -> bytes:
     """
     Simplified placeholder for the edge index decompression
     In a full implementation, this would properly handle the triangle strips format
@@ -137,8 +155,16 @@ def decompressEdgeIndices(indexBuffer, indexCount):
 
 class Bone:
     """Helper class for bone data"""
+    index: int
+    name: str
+    parentIndex: int
+    position: Any
+    matrix: Any
+    children: list
+    size_multiplier: float
+    blender_bone: Any
 
-    def __init__(self, index, name, parentIndex, translation, size_multiplier=1.5):
+    def __init__(self, index: int, name: str, parentIndex: int, translation: Any, size_multiplier: float = 1.5) -> None:
         self.index = index
         self.name = name if name else f"bone_{index}"
         self.parentIndex = parentIndex
@@ -148,7 +174,7 @@ class Bone:
         self.size_multiplier = size_multiplier
         self.blender_bone = None  # Store reference to created Blender bone
 
-    def setMatrix(self, matrix_data, endian):
+    def setMatrix(self, matrix_data: bytes, endian: str) -> None:
         """Parse matrix data from the file to create a bone matrix"""
         from mathutils import Matrix
 
@@ -172,7 +198,7 @@ class Bone:
         # Extract position from matrix
         self.position = self.matrix.to_translation()
 
-    def getPosition(self):
+    def getPosition(self) -> Any:
         """Get the bone position, either from translation or matrix"""
         if self.matrix:
             # Extract position from matrix
@@ -181,7 +207,7 @@ class Bone:
             # Use the translation directly
             return self.position
 
-    def create_in_blender(self, armature, bone_map=None):
+    def create_in_blender(self, armature: Any, bone_map: dict = None) -> Any:
         """Create this bone in a Blender armature"""
         # Switch to edit mode to add bones
         bpy.ops.object.mode_set(mode='EDIT')
@@ -214,7 +240,7 @@ class Bone:
         self.blender_bone = edit_bone
         return edit_bone
 
-    def apply_transform(self, armature_obj):
+    def apply_transform(self, armature_obj: Any) -> None:
         """Apply the bone's transformation matrix in pose mode"""
         if not self.matrix:
             return
@@ -240,7 +266,7 @@ class Bone:
                 pose_bone.matrix = local_matrix
 
 
-def create_armature_from_bones(bone_list, name="Armature"):
+def create_armature_from_bones(bone_list: list, name: str = "Armature") -> Any:
     """Create a Blender armature from a list of Bone objects"""
     import bpy
 

@@ -1,3 +1,4 @@
+from typing import Any
 from . import igz_file
 from . import formats
 from . import utils
@@ -9,33 +10,33 @@ from . import constants
 
 
 class sttIgzFile(igz_file.igzFile):
-    def __init__(self, data):
-        igz_file.igzFile.__init__(self, data)
+    def __init__(self, data: bytes) -> None:
+        super().__init__(data)
         # On trap team, IG_CORE_PLATFORM_MARMALADE was turned into IG_CORE_PLATFORM_DEPRECATED
         self.is64Bit = ssfIgzFile.is64BitCall
         self.arkRegisteredTypes = sttarkRegisteredTypes
 
-    def process_tfbSpriteInfo(self, bs, offset):
+    def process_tfbSpriteInfo(self, bs: Any, offset: int) -> None:
         self.bitAwareSeek(bs, offset, 0x00, 0xD8)
         _contextDataInfo = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_tfbPhysicsModel(self, bs, offset):
+    def process_tfbPhysicsModel(self, bs: Any, offset: int) -> None:
         self.bitAwareSeek(bs, offset, 0x00, 0x14)
         _tfbBody = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_tfbPhysicsBody(self, bs, offset):
+    def process_tfbPhysicsBody(self, bs: Any, offset: int) -> None:
         isModelNew = self.addModel(offset)
         if isModelNew:
             self.bitAwareSeek(bs, offset, 0x00, 0x28)
             _combinerPrototype = self.process_igObject(
                 bs, self.readPointer(bs))
             if self.platform == 0x0B or self.platform == 0x04:
-                bs.seek(offset + 0x20, constants.NOESEEK_ABS)
+                bs.seek(offset + 0x20, constants.SeekMode.ABS)
             else:
                 self.bitAwareSeek(bs, offset, 0x00, 0x30)
             _entityInfo = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_tfbBodyEntityInfo(self, bs, offset):
+    def process_tfbBodyEntityInfo(self, bs: Any, offset: int) -> None:
         self.bitAwareSeek(bs, offset, 0x00, 0x24)
         _blendMatrixIndexLists = self.process_igObject(
             bs, self.readPointer(bs))
@@ -44,11 +45,11 @@ class sttIgzFile(igz_file.igzFile):
             self.models[-1].boneMapList.extend(_blendMatrixIndexLists)
         sttIgzFile.process_tfbEntityInfo(self, bs, offset)
 
-    def process_tfbEntityInfo(self, bs, offset):
+    def process_tfbEntityInfo(self, bs: Any, offset: int) -> None:
         self.bitAwareSeek(bs, offset, 0x00, 0x14)
         _drawables = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_Drawable(self, bs, offset):
+    def process_Drawable(self, bs: Any, offset: int) -> None:
         self.models[-1].meshes.append(formats.MeshObject())
         self.bitAwareSeek(bs, offset, 0x00, 0x16)
         _blendMatrixSet = bs.readUShort()
@@ -57,23 +58,23 @@ class sttIgzFile(igz_file.igzFile):
         self.bitAwareSeek(bs, offset, 0x00, 0x0C)
         _geometry = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_tfbPhysicsWorld(self, bs, offset):
+    def process_tfbPhysicsWorld(self, bs: Any, offset: int) -> None:
         self.addModel(offset)
         self.bitAwareSeek(bs, offset, 0x00, 0x28)
         _entityInfo = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_tfbPhysicsCombinerLink(self, bs, offset):
+    def process_tfbPhysicsCombinerLink(self, bs: Any, offset: int) -> None:
         self.bitAwareSeek(bs, offset, 0x00, 0x0C)
         _skeleton = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_tfbActorInfo(self, bs, offset):
+    def process_tfbActorInfo(self, bs: Any, offset: int) -> None:
         if self.platform != 0x04:
             self.bitAwareSeek(bs, offset, 0x00, 0xEC)
         else:
             self.bitAwareSeek(bs, offset, 0x00, 0xEC)
         _model = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_tfbMobileLodGeometry(self, bs, offset):
+    def process_tfbMobileLodGeometry(self, bs: Any, offset: int) -> None:
         ssfIgzFile.process_igGeometry(self, bs, offset)
         self.bitAwareSeek(bs, offset, 0x00, 0x2C)
         _lodAttrs = self.process_igObject(bs, self.readPointer(bs))
@@ -83,12 +84,12 @@ class sttIgzFile(igz_file.igzFile):
 # Giants implementation
 # ------------------------------------------------------------------------------
 class sgIgzFile(igz_file.igzFile):
-    def __init__(self, data):
-        igz_file.igzFile.__init__(self, data)
+    def __init__(self, data: bytes) -> None:
+        super().__init__(data)
         self.is64Bit = sgIgzFile.is64BitCall
         self.arkRegisteredTypes = sgarkRegisteredTypes
 
-    def is64BitCall(self):
+    def is64BitCall(self) -> bool:
         platformbittness = [
             False,  # IG_CORE_PLATFORM_DEFAULT
             False,  # IG_CORE_PLATFORM_WIN32
@@ -107,11 +108,11 @@ class sgIgzFile(igz_file.igzFile):
         ]
         return platformbittness[self.platform]
 
-    def process_tfbSpriteInfo(self, bs, offset):
+    def process_tfbSpriteInfo(self, bs: Any, offset: int) -> None:
         self.bitAwareSeek(bs, offset, 0x00, 0xD0)
         _contextDataInfo = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_tfbPhysicsBody(self, bs, offset):
+    def process_tfbPhysicsBody(self, bs: Any, offset: int) -> None:
         shouldAddModel = self.addModel(offset)
         if shouldAddModel:
             self.bitAwareSeek(bs, offset, 0x00, 0x24)
@@ -120,19 +121,19 @@ class sgIgzFile(igz_file.igzFile):
             self.bitAwareSeek(bs, offset, 0x00, 0x20)
             _node = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_tfbRuntimeTechniqueInstance(self, bs, offset):
+    def process_tfbRuntimeTechniqueInstance(self, bs: Any, offset: int) -> None:
         self.bitAwareSeek(bs, offset, 0x00, 0x28)
         _geomAttr = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_igEdgeGeometryAttr(self, bs, offset):
+    def process_igEdgeGeometryAttr(self, bs: Any, offset: int) -> None:
         self.models[-1].meshes.append(formats.MeshObject())
         ssfIgzFile.process_igEdgeGeometryAttr(self, bs, offset)
 
-    def process_tfbActorInfo(self, bs, offset):
+    def process_tfbActorInfo(self, bs: Any, offset: int) -> None:
         self.bitAwareSeek(bs, offset, 0x00, 0xDC)
         _model = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_tfbPhysicsWorld(self, bs, offset):
+    def process_tfbPhysicsWorld(self, bs: Any, offset: int) -> None:
         self.bitAwareSeek(bs, offset, 0x00, 0x20)
         _sceneInfo = self.process_igObject(bs, self.readPointer(bs))
 
@@ -141,12 +142,12 @@ class sgIgzFile(igz_file.igzFile):
 # Spyro's Adventure implementation
 # ------------------------------------------------------------------------------
 class ssaIgzFile(igz_file.igzFile):
-    def __init__(self, data):
-        igz_file.igzFile.__init__(self, data)
+    def __init__(self, data: bytes) -> None:
+        super().__init__(data)
         self.is64Bit = ssaIgzFile.is64BitCall
         self.arkRegisteredTypes = ssaarkRegisteredTypes
 
-    def is64BitCall(self):
+    def is64BitCall(self) -> bool:
         platformbittness = [
             False,  # IG_CORE_PLATFORM_DEFAULT
             False,  # IG_CORE_PLATFORM_WIN32
@@ -165,99 +166,11 @@ class ssaIgzFile(igz_file.igzFile):
         ]
         return platformbittness[self.platform]
 
-    def process_igBlendMatrixSelect(self, bs, offset):
+    def process_igBlendMatrixSelect(self, bs: Any, offset: int) -> None:
         self.bitAwareSeek(bs, offset, 0x00, 0xB0)
         self.models[-1].boneMapList.append(
             self.process_igObject(bs, self.readPointer(bs)))
         ssfIgzFile.process_igAttrSet(self, bs, offset)
-
-# ------------------------------------------------------------------------------
-# Newest implementation (NST)
-# ------------------------------------------------------------------------------
-
-
-class nstIgzFile(igz_file.igzFile):
-    def __init__(self, data):
-        igz_file.igzFile.__init__(self, data)
-        self.is64Bit = nstIgzFile.is64BitCall
-        self.arkRegisteredTypes = constants.nstarkRegisteredTypes
-
-    def is64BitCall(self):
-        return True
-
-    def process_igDataList(self, bs, offset):
-        self.bitAwareSeek(bs, offset, 0x10, 0x08)
-        _count = bs.readUInt()
-        _capacity = bs.readUInt()
-        self.bitAwareSeek(bs, offset, 0x18, 0x10)
-        _data = self.readMemoryRef(bs)
-        return (_count, _capacity, _data)
-
-    def process_igVertexBuffer(self, bs, offset):
-        self.bitAwareSeek(bs, offset, 0x10, 0x00)
-        self.models[-1].meshes[-1].vertexCount = bs.readUInt()
-        self.bitAwareSeek(bs, offset, 0x28, 0x00)
-        _data = self.readMemoryRef(bs)
-        self.bitAwareSeek(bs, offset, 0x38, 0x18)
-        _format = self.process_igObject(bs, self.readPointer(bs))
-        self.models[-1].meshes[-1].vertexBuffers.append(_data[2])
-        self.models[-1].meshes[-1].vertexStrides.append(_format)
-
-        print(f"vertexCount:  {hex(self.models[-1].meshes[-1].vertexCount)}")
-        print(f"vertex offset: {hex(_data[1])}")
-        print(f"vertex buf size: {hex(_data[0])}")
-
-    def process_igIndexBuffer(self, bs, offset):
-        self.bitAwareSeek(bs, offset, 0x10, 0x08)
-        self.models[-1].meshes[-1].indexCount = bs.readUInt()
-        self.bitAwareSeek(bs, offset, 0x28, 0x14)
-        _data = self.readMemoryRef(bs)
-        self.models[-1].meshes[-1].indexBuffer = _data[2]
-        self.bitAwareSeek(bs, offset, 0x40, 0x1C)
-        primType = bs.readInt()
-        if primType == 0:
-            primType = constants.RPGEO_POINTS
-        elif primType == 3:
-            primType = constants.RPGEO_TRIANGLE
-        elif primType == 4:
-            primType = constants.RPGEO_TRIANGLE_STRIP
-        elif primType == 5:
-            primType = constants.RPGEO_TRIANGLE_FAN
-        elif primType == 6:
-            primType = constants.RPGEO_TRIANGLE_QUADS
-        else:
-            raise NotImplementedError(
-                f"primitive type {hex(primType)} is not supported.")
-        self.models[-1].meshes[-1].primType = primType
-
-        print(f"indexCount:   {hex(self.models[-1].meshes[-1].indexCount)}")
-        print(f"index offset: {hex(_data[1])}")
-        print(f"index buf size: {hex(_data[0])}")
-
-    def process_igGraphicsVertexBuffer(self, bs, offset):
-        self.bitAwareSeek(bs, offset, 0x20, 0x0C)
-        _vertexBuffer = self.process_igObject(bs, self.readPointer(bs))
-
-    def process_igGraphicsIndexBuffer(self, bs, offset):
-        self.bitAwareSeek(bs, offset, 0x20, 0x0C)
-        _indexBuffer = self.process_igObject(bs, self.readPointer(bs))
-
-    def process_igVertexFormat(self, bs, offset):
-        self.bitAwareSeek(bs, offset, 0x10, 0x08)
-        _vertexSize = bs.readUInt()
-        self.models[-1].meshes[-1].platform = 8
-        self.models[-1].meshes[-1].platformData = None
-        self.bitAwareSeek(bs, offset, 0x18, 0x0C)
-        _elements = self.readMemoryRef(bs)
-        elementCount = _elements[0] // 0x0C
-
-        self.models[-1].meshes[-1].vertexStreams.append(_vertexSize)
-
-        for i in range(elementCount):
-            self.models[-1].meshes[-1].vertexElements.append(
-                formats.igVertexElement(_elements[2][i * 0x0C: (i + 1) * 0x0C], '<'))
-
-        return _vertexSize
 
 
 # ------------------------------------------------------------------------------
@@ -266,12 +179,12 @@ class nstIgzFile(igz_file.igzFile):
 class sscIgzFile(igz_file.igzFile):
     """SuperChargers implementation"""
 
-    def __init__(self, data):
-        igz_file.igzFile.__init__(self, data)
+    def __init__(self, data: bytes) -> None:
+        super().__init__(data)
         self.is64Bit = sscIgzFile.is64BitCall
         self.arkRegisteredTypes = sscarkRegisteredTypes
 
-    def is64BitCall(self):
+    def is64BitCall(self) -> bool:
         platformbittness = [
             False,  # IG_CORE_PLATFORM_DEFAULT
             False,  # IG_CORE_PLATFORM_WIN32
@@ -294,14 +207,14 @@ class sscIgzFile(igz_file.igzFile):
         ]
         return platformbittness[self.platform]
 
-    def process_CGraphicsSkinInfo(self, bs, offset):
+    def process_CGraphicsSkinInfo(self, bs: Any, offset: int) -> None:
         self.models.append(formats.ModelObject())
         self.bitAwareSeek(bs, offset, 0x28, 0x14)
         _skeleton = self.process_igObject(bs, self.readPointer(bs))
         self.bitAwareSeek(bs, offset, 0x30, 0x18)
         _skin = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_igSkeleton2(self, bs, offset):
+    def process_igSkeleton2(self, bs: Any, offset: int) -> None:
         self.bitAwareSeek(bs, offset, 0x20, 0x10)
         _inverseJointArray = self.readMemoryRef(bs)
         print(f"_inverseJointArray offset: {hex(_inverseJointArray[1])}")
@@ -310,9 +223,9 @@ class sscIgzFile(igz_file.igzFile):
         self.bitAwareSeek(bs, offset, 0x18, 0x0C)
         _boneList = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_igSkeletonBoneList(self, bs, offset):
+    def process_igSkeletonBoneList(self, bs: Any, offset: int) -> None:
         bones = self.process_igObjectList(bs, offset)
-        endarg = constants.NOE_BIGENDIAN if self.endianness == "BE" else constants.NOE_LITTLEENDIAN
+        endarg = constants.Endianness.BIG if self.endianness == "BE" else constants.Endianness.LITTLE
         index = 0
 
         # Check if there are any corrupted bones
@@ -329,14 +242,14 @@ class sscIgzFile(igz_file.igzFile):
             bone_obj = utils.Bone(bone[2], bone[0], bone[1]-1, bone[3])
 
             if bone[2] != -1:
-                mtxStream.seek(bone[2] * 0x40, constants.NOESEEK_ABS)
+                mtxStream.seek(bone[2] * 0x40, constants.SeekMode.ABS)
                 bone_matrix_data = mtxStream.readBytes(0x40)
                 bone_obj.setMatrix(bone_matrix_data, endarg)
 
             self.models[-1].boneList.append(bone_obj)
             index += 1
 
-    def process_igSkeletonBone(self, bs, offset):
+    def process_igSkeletonBone(self, bs: Any, offset: int) -> tuple:
         _name = self.process_igNamedObject(bs, offset)
         self.bitAwareSeek(bs, offset, 0x18, 0x0C)
         _parentIndex = bs.readInt()
@@ -346,12 +259,12 @@ class sscIgzFile(igz_file.igzFile):
         _translation = self.readVector3(bs)
         return (_name, _parentIndex, _blendMatrixIndex, _translation)
 
-    def process_igModelInfo(self, bs, offset):
+    def process_igModelInfo(self, bs: Any, offset: int) -> None:
         self.models.append(formats.ModelObject())
         self.bitAwareSeek(bs, offset, 0x28, 0x14)
         _modelData = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_igModelData(self, bs, offset):
+    def process_igModelData(self, bs: Any, offset: int) -> None:
         self.bitAwareSeek(bs, offset, 0x40, 0x30)
         _transforms = self.readObjectVector(bs)
         self.bitAwareSeek(bs, offset, 0x58, 0x3C)
@@ -371,7 +284,7 @@ class sscIgzFile(igz_file.igzFile):
             self.models[-1].meshes.append(mesh)
             self.process_igObject(bs, _drawCalls[i])
 
-    def process_igModelDrawCallData(self, bs, offset):
+    def process_igModelDrawCallData(self, bs: Any, offset: int) -> None:
         _name = self.process_igNamedObject(bs, offset)
         self.bitAwareSeek(bs, offset, 0x48, 0x34)
         _graphicsVertexBuffer = self.process_igObject(bs, self.readPointer(bs))
@@ -391,15 +304,15 @@ class sscIgzFile(igz_file.igzFile):
             self.models[-1].boneIdList[_blendVectorOffset:_blendVectorOffset + _blendVectorCount])
         self.models[-1].meshes[-1].name = _name
 
-    def process_igGraphicsVertexBuffer(self, bs, offset):
+    def process_igGraphicsVertexBuffer(self, bs: Any, offset: int) -> None:
         self.bitAwareSeek(bs, offset, 0x10, 0x0C)
         _vertexBuffer = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_igGraphicsIndexBuffer(self, bs, offset):
+    def process_igGraphicsIndexBuffer(self, bs: Any, offset: int) -> None:
         self.bitAwareSeek(bs, offset, 0x10, 0x0C)
         _indexBuffer = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_igVertexBuffer(self, bs, offset):
+    def process_igVertexBuffer(self, bs: Any, offset: int) -> None:
         self.bitAwareSeek(bs, offset, 0x0C, 0x08)
         self.models[-1].meshes[-1].vertexCount = bs.readUInt()
         self.bitAwareSeek(bs, offset, 0x20, 0x14)
@@ -422,7 +335,7 @@ class sscIgzFile(igz_file.igzFile):
         print(f"vertex offset: {hex(_data[1])}")
         print(f"vertex buf size: {hex(_data[0])}")
 
-    def process_igVertexFormat(self, bs, offset):
+    def process_igVertexFormat(self, bs: Any, offset: int) -> int:
         self.bitAwareSeek(bs, offset, 0x0C, 0x08)
         _vertexSize = bs.readUInt()
         self.bitAwareSeek(bs, offset, 0x30, 0x1C)
@@ -455,7 +368,7 @@ class sscIgzFile(igz_file.igzFile):
                 formats.igVertexElement(_elements[2][i * 0x0C: (i + 1) * 0x0C], endarg))
         return _vertexSize
 
-    def process_igIndexBuffer(self, bs, offset):
+    def process_igIndexBuffer(self, bs: Any, offset: int) -> None:
         self.bitAwareSeek(bs, offset, 0x0C, 0x08)
         self.models[-1].meshes[-1].indexCount = bs.readUInt()
         self.bitAwareSeek(bs, offset, 0x20, 0x14)
@@ -464,15 +377,15 @@ class sscIgzFile(igz_file.igzFile):
         self.bitAwareSeek(bs, offset, 0x30, 0x1C)
         primType = bs.readInt()
         if primType == 0:
-            primType = constants.RPGEO_POINTS
+            primType = constants.PrimitiveType.POINTS
         elif primType == 3:
-            primType = constants.RPGEO_TRIANGLE
+            primType = constants.PrimitiveType.TRIANGLE
         elif primType == 4:
-            primType = constants.RPGEO_TRIANGLE_STRIP
+            primType = constants.PrimitiveType.TRIANGLE_STRIP
         elif primType == 5:
-            primType = constants.RPGEO_TRIANGLE_FAN
+            primType = constants.PrimitiveType.TRIANGLE_FAN
         elif primType == 6:
-            primType = constants.RPGEO_TRIANGLE_QUADS
+            primType = constants.PrimitiveType.TRIANGLE_QUADS
         else:
             raise NotImplementedError(
                 f"primitive type {hex(primType)} is not supported.")
@@ -482,10 +395,10 @@ class sscIgzFile(igz_file.igzFile):
         print(f"index offset: {hex(_data[1])}")
         print(f"index buf size: {hex(_data[0])}")
 
-    def process_igPS3EdgeGeometry(self, bs, offset):
+    def process_igPS3EdgeGeometry(self, bs: Any, offset: int) -> None:
         # igPS3EdgeGeometry inherits from igPS3EdgeGeometrySegmentList which inherits from igObjectList<igPS3EdgeGeometrySegment>
         geometries = self.process_igObjectList(bs, offset)
-        bs.seek(offset + 0x19, constants.NOESEEK_ABS)
+        bs.seek(offset + 0x19, constants.SeekMode.ABS)
         _isSkinned = bs.readUByte()
 
         index = 0
@@ -520,33 +433,33 @@ class sscIgzFile(igz_file.igzFile):
             self.models[-1].meshes[-1].ps3Segments.append(segment)
             index += 1
 
-    def process_igPS3EdgeGeometrySegment(self, bs, offset):
+    def process_igPS3EdgeGeometrySegment(self, bs: Any, offset: int) -> tuple:
         # PS3 likes to have sub sub meshes for some reason so we merge them into one submesh
-        bs.seek(offset + 0x08, constants.NOESEEK_ABS)
+        bs.seek(offset + 0x08, constants.SeekMode.ABS)
         _spuConfigInfo = self.readMemoryRef(bs)
-        bs.seek(offset + 0x10, constants.NOESEEK_ABS)
+        bs.seek(offset + 0x10, constants.SeekMode.ABS)
         _indexes = self.readMemoryRef(bs)
-        bs.seek(offset + 0x1C, constants.NOESEEK_ABS)
+        bs.seek(offset + 0x1C, constants.SeekMode.ABS)
         _spuVertexes0 = self.readMemoryRef(bs)
-        bs.seek(offset + 0x24, constants.NOESEEK_ABS)
+        bs.seek(offset + 0x24, constants.SeekMode.ABS)
         _spuVertexes1 = self.readMemoryRef(bs)
-        bs.seek(offset + 0x38, constants.NOESEEK_ABS)
+        bs.seek(offset + 0x38, constants.SeekMode.ABS)
         _rsxOnlyVertexes = self.readMemoryRef(bs)
-        bs.seek(offset + 0x44, constants.NOESEEK_ABS)
+        bs.seek(offset + 0x44, constants.SeekMode.ABS)
         _skinMatrixByteOffsets0 = bs.readUShort()
         _skinMatrixByteOffsets1 = bs.readUShort()
         _skinMatricesSizes0 = bs.readUShort()
         _skinMatricesSizes1 = bs.readUShort()
-        bs.seek(offset + 0x50, constants.NOESEEK_ABS)
+        bs.seek(offset + 0x50, constants.SeekMode.ABS)
         _skinIndexesAndWeights = self.readMemoryRef(bs)
         print(
             f"_skinIndexesAndWeights Buffer @ {hex(_skinIndexesAndWeights[1])}")
         print(f"_spuConfigInfo Buffer @ {hex(_spuConfigInfo[1])}")
-        bs.seek(offset + 0x60, constants.NOESEEK_ABS)
+        bs.seek(offset + 0x60, constants.SeekMode.ABS)
         _spuInputStreamDescs0 = self.readMemoryRef(bs)
-        bs.seek(offset + 0x68, constants.NOESEEK_ABS)
+        bs.seek(offset + 0x68, constants.SeekMode.ABS)
         _spuInputStreamDescs1 = self.readMemoryRef(bs)
-        bs.seek(offset + 0x78, constants.NOESEEK_ABS)
+        bs.seek(offset + 0x78, constants.SeekMode.ABS)
         _rsxOnlyStreamDesc = self.readMemoryRef(bs)
         spuConfigInfoObject = formats.EdgeGeomSpuConfigInfo(_spuConfigInfo[2])
         spuConfigInfoObject.skinMatrixOffset0 = _skinMatrixByteOffsets0
@@ -567,12 +480,12 @@ class sscIgzFile(igz_file.igzFile):
 # Swap Force implementation
 # ------------------------------------------------------------------------------
 class ssfIgzFile(igz_file.igzFile):
-    def __init__(self, data):
-        igz_file.igzFile.__init__(self, data)
+    def __init__(self, data: bytes) -> None:
+        super().__init__(data)
         self.is64Bit = ssfIgzFile.is64BitCall
         self.arkRegisteredTypes = ssfarkRegisteredTypes
 
-    def is64BitCall(self):
+    def is64BitCall(self) -> bool:
         platformbittness = [
             False,  # IG_CORE_PLATFORM_DEFAULT
             False,  # IG_CORE_PLATFORM_WIN32
@@ -595,22 +508,22 @@ class ssfIgzFile(igz_file.igzFile):
         ]
         return platformbittness[self.platform]
 
-    def process_igSceneInfo(self, bs, offset):
+    def process_igSceneInfo(self, bs: Any, offset: int) -> None:
         self.models.append(formats.ModelObject())
         self.bitAwareSeek(bs, offset, 0x00, 0x14)
         _sceneGraph = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_igGroup(self, bs, offset):
+    def process_igGroup(self, bs: Any, offset: int) -> None:
         self.bitAwareSeek(bs, offset, 0x00, 0x20)
         _childList = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_igTransform(self, bs, offset):
+    def process_igTransform(self, bs: Any, offset: int) -> None:
         self.process_igGroup(bs, offset)
 
-    def process_igFxMaterialNode(self, bs, offset):
+    def process_igFxMaterialNode(self, bs: Any, offset: int) -> None:
         self.process_igGroup(bs, offset)
 
-    def process_igGeometry(self, bs, offset):
+    def process_igGeometry(self, bs: Any, offset: int) -> None:
         ssfIgzFile.process_igGroup(self, bs, offset)
         self.bitAwareSeek(bs, offset, 0x00, 0x24)
         mesh = formats.MeshObject()
@@ -619,11 +532,11 @@ class ssfIgzFile(igz_file.igzFile):
         self.models[-1].meshes.append(mesh)
         _attrList = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_igEdgeGeometryAttr(self, bs, offset):
+    def process_igEdgeGeometryAttr(self, bs: Any, offset: int) -> None:
         self.bitAwareSeek(bs, offset, 0x00, 0x10)
         _geometry = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_igGeometryAttr(self, bs, offset):
+    def process_igGeometryAttr(self, bs: Any, offset: int) -> None:
         self.models[-1].meshes.append(formats.MeshObject())
         self.bitAwareSeek(bs, offset, 0x00, 0x10)
         _vertexBuffer = self.process_igObject(bs, self.readPointer(bs))
@@ -631,59 +544,60 @@ class ssfIgzFile(igz_file.igzFile):
         print("I'M GOING TO READ THE INDEX BUFFER NOW")
         _indexBuffer = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_asAnimationDatabase(self, bs, offset):
+    def process_asAnimationDatabase(self, bs: Any, offset: int) -> None:
         self.models.append(formats.ModelObject())
         self.bitAwareSeek(bs, offset, 0x00, 0x14)
         _skeleton = self.process_igObject(bs, self.readPointer(bs))
         self.bitAwareSeek(bs, offset, 0x00, 0x18)
         _skin = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_igAttrSet(self, bs, offset):
+    def process_igAttrSet(self, bs: Any, offset: int) -> None:
         ssfIgzFile.process_igGroup(self, bs, offset)
         self.bitAwareSeek(bs, offset, 0x00, 0x24)
         _attributes = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_igBlendMatrixSelect(self, bs, offset):
+    def process_igBlendMatrixSelect(self, bs: Any, offset: int) -> None:
         self.bitAwareSeek(bs, offset, 0x00, 0xB4)
         self.models[-1].boneMapList.append(
             self.process_igObject(bs, self.readPointer(bs)))
         ssfIgzFile.process_igAttrSet(self, bs, offset)
 
-    def process_igAnimation2Info(self, bs, offset):
+    def process_igAnimation2Info(self, bs: Any, offset: int) -> None:
         self.bitAwareSeek(bs, offset, 0x00, 0x14)
         _animationList = self.process_igObject(bs, self.readPointer(bs))
 
-    def process_igSkeleton2Info(self, bs, offset):
+    def process_igSkeleton2Info(self, bs: Any, offset: int) -> None:
         self.bitAwareSeek(bs, offset, 0x00, 0x14)
         _skeletonList = self.process_igObject(bs, self.readPointer(bs))
 
 # SSA Wii U "forward declarations"
-    def process_tfbSpriteInfo(self, bs, offset):
+    def process_tfbSpriteInfo(self, bs: Any, offset: int) -> None:
         pass
 
-    def process_tfbPhysicsModel(self, bs, offset):
+    def process_tfbPhysicsModel(self, bs: Any, offset: int) -> None:
         pass
 
-    def process_tfbPhysicsBody(self, bs, offset):
+    def process_tfbPhysicsBody(self, bs: Any, offset: int) -> None:
         pass
 
-    def process_tfbEntityInfo(self, bs, offset):
+    def process_tfbEntityInfo(self, bs: Any, offset: int) -> None:
         pass
 
-    def process_Drawable(self, bs, offset):
+    def process_Drawable(self, bs: Any, offset: int) -> None:
         pass
 
-    def process_tfbPhysicsWorld(self, bs, offset):
+    def process_tfbPhysicsWorld(self, bs: Any, offset: int) -> None:
         pass
 
-    def process_tfbPhysicsCombinerLink(self, bs, offset):
+    def process_tfbPhysicsCombinerLink(self, bs: Any, offset: int) -> None:
         pass
 
-    def process_tfbActorInfo(self, bs, offset):
+    def process_tfbActorInfo(self, bs: Any, offset: int) -> None:
         pass
 
-    def process_tfbRuntimeTechniqueInstance(self, bs, offset):
+    def process_tfbRuntimeTechniqueInstance(self, bs: Any, offset: int) -> None:
         pass
+
 
  # Registry for the SSF (Swap Force) format
 ssfarkRegisteredTypes = {
@@ -849,25 +763,6 @@ ssaarkRegisteredTypes = {
     "igBlendMatrixSelect": ssaIgzFile.process_igBlendMatrixSelect,
     "igIntList": igz_file.igzFile.process_igIntList,
     "tfbRuntimeTechniqueInstance": sgIgzFile.process_tfbRuntimeTechniqueInstance
-}
-
-# Registry for the NST(Newest) format
-nstarkRegisteredTypes = {
-    "igDataList": nstIgzFile.process_igDataList,
-    "igNamedObject": igz_file.igzFile.process_igNamedObject,
-    "igObjectList": igz_file.igzFile.process_igObjectList,
-    "igSkeleton2": sscIgzFile.process_igSkeleton2,
-    "igSkeletonBoneList": sscIgzFile.process_igSkeletonBoneList,
-    "igSkeletonBone": sscIgzFile.process_igSkeletonBone,
-    "CGraphicsSkinInfo": sscIgzFile.process_CGraphicsSkinInfo,
-    "igModelInfo": sscIgzFile.process_igModelInfo,
-    "igModelData": sscIgzFile.process_igModelData,
-    "igModelDrawCallData": sscIgzFile.process_igModelDrawCallData,
-    "igGraphicsVertexBuffer": nstIgzFile.process_igGraphicsVertexBuffer,
-    "igGraphicsIndexBuffer": nstIgzFile.process_igGraphicsIndexBuffer,
-    "igVertexBuffer": nstIgzFile.process_igVertexBuffer,
-    "igVertexFormat": nstIgzFile.process_igVertexFormat,
-    "igIndexBuffer": nstIgzFile.process_igIndexBuffer,
 }
 
 # Registry for the SSC (SuperChargers) format
