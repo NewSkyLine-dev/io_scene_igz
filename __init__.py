@@ -1,16 +1,3 @@
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTIBILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
-
 import bpy
 from bpy.props import (
     StringProperty,
@@ -21,6 +8,17 @@ from . import constants
 from . import utils
 from . import game_formats
 from typing import Any
+import os
+import importlib
+from .operators.file_operator import menu_func_import
+
+ADDON_PATH = os.path.direname(__file__)
+ARCHIVE_EXTENSIONS = ('.iga', '.igz', '.arc', '.bld', '.pak', '.lang')
+DEFAULT_WINDOW_WIDTH = 600
+MAX_TREE_DEPTH = 20
+
+if "bpy" in locals():
+    ...
 
 
 class ImportSkylandersIGZ(bpy.types.Operator, ImportHelper):
@@ -125,23 +123,36 @@ class ImportSkylandersIGZ(bpy.types.Operator, ImportHelper):
             return {'CANCELLED'}
 
 
+classes = ()
 # ------------------------------------------------------------------------------
 # Register/Unregister functionality
 # ------------------------------------------------------------------------------
+
+
 def menu_func_import(self, context):
     self.layout.operator(ImportSkylandersIGZ.bl_idname,
                          text="Skylanders IGZ/BLD (.igz/.bld)")
 
 
 def register():
-    bpy.utils.register_class(ImportSkylandersIGZ)
+    for cls in classes:
+        try:
+            bpy.utils.register_class(cls)
+        except Exception as e:
+            print(f"Failed to register class {cls.__name__}: {e}")
+
+    register_properties()
+
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
 
 
 def unregister():
-    bpy.utils.unregister_class(ImportSkylandersIGZ)
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
 
+    unregister_properties()
 
-if __name__ == "__main__":
-    register()
+    for cls in reversed(classes):
+        try:
+            bpy.utils.unregister_class(cls)
+        except Exception as e:
+            print(f"Failed to unregister class {cls.__name__}: {e}")

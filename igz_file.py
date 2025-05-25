@@ -197,7 +197,6 @@ class igzFile:
         else:
             return self.stringList[raw]
 
-    # ☑️
     def processFixupSections(self, bs: utils.NoeBitStream, numFixups: int) -> None:
         start = bs.tell()
         if self.version <= 0x06:
@@ -259,7 +258,6 @@ class igzFile:
         else:
             return None
 
-    # ☑️
     def process_igDataList(self, bs: utils.NoeBitStream, offset: int) -> tuple:
         self.bitAwareSeek(bs, offset, 0x0C, 0x08)
         _count = bs.readUInt()
